@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#2a1a12"/>
+  <g transform="translate(360 150)">
+    <rect x="80" y="220" width="320" height="40" fill="#6b3e2a"/>
+    <rect x="40" y="80" width="40" height="180" fill="#ead7b5"/>
+    <rect x="80" y="80" width="360" height="40" fill="#e2cba4"/>
+    <rect x="140" y="120" width="120" height="90" fill="#9ec9d6"/>
+    <rect x="180" y="230" width="160" height="16" fill="#8d5a34"/>
+    <rect x="200" y="170" width="50" height="40" fill="#1a120c"/>
+    <rect x="260" y="170" width="50" height="40" fill="#1a120c"/>
+    <rect x="206" y="176" width="38" height="24" fill="#e7b56a"/>
+    <rect x="266" y="176" width="38" height="24" fill="#7dcea0"/>
+    <rect x="360" y="150" width="70" height="50" fill="#3d291c"/>
+    <rect x="368" y="158" width="54" height="30" fill="#1f6b45"/>
+  </g>
+  <text x="80" y="520" fill="#f6efe4" font-family="Georgia, serif" font-size="54">Your Name</text>
+  <text x="80" y="570" fill="#e7b56a" font-family="Georgia, serif" font-size="28">Voxel autumn portfolio</text>
+</svg>
