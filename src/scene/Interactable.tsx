@@ -7,6 +7,7 @@ type InteractableProps = {
   id: string
   label: string
   position: [number, number, number]
+  rotation?: [number, number, number]
   tooltip?: [number, number, number]
   onSelect: () => void
   children: (hot: boolean) => ReactNode
@@ -16,6 +17,7 @@ export function Interactable({
   id,
   label,
   position,
+  rotation = [0, 0, 0],
   tooltip = [0, 2.3, 0],
   onSelect,
   children,
@@ -38,11 +40,12 @@ export function Interactable({
 
   const up = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
+    if (useStore.getState().dragging) return
     onSelect()
   }
 
   return (
-    <group position={position} onPointerOver={over} onPointerOut={out} onPointerUp={up}>
+    <group position={position} rotation={rotation} onPointerOver={over} onPointerOut={out} onPointerUp={up}>
       {children(hot)}
       {hot ? (
         <Html position={tooltip} center zIndexRange={[30, 0]} style={{ pointerEvents: 'none' }}>

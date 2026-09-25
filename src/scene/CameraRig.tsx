@@ -1,52 +1,145 @@
 import { OrthographicCamera } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { memo, useLayoutEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { MathUtils, OrthographicCamera as ThreeOrtho, Vector3 } from 'three'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useStore } from '../store/useStore'
 
-const ROOM_POS = new Vector3(16, 12.5, 16)
-const ROOM_LOOK = new Vector3(0.2, 1.8, -0.4)
-const DESK_POS = new Vector3(6.2, 6.4, 8.4)
-const DESK_LOOK = new Vector3(-1.2, 2.15, 0.15)
-const ROOM_ZOOM = 50
-const DESK_ZOOM = 96
-const MOBILE_ROOM_ZOOM = 26
-const MOBILE_DESK_ZOOM = 52
+const ROOM_TARGET = new Vector3(0, 1.55, 0)
+const DESK_TARGET = new Vector3(0, 1.9, 0.15)
+const ROOM_AZIMUTH = Math.PI / 4
+const DESK_AZIMUTH = Math.PI / 4
+const POLAR = 0.96
+const RADIUS = 24
+const ROOM_ZOOM = 48
+const DESK_ZOOM = 92
+const MOBILE_ROOM_ZOOM = 24
+const MOBILE_DESK_ZOOM = 48
 
 export const IsoCamera = memo(function IsoCamera() {
   return (
-    <OrthographicCamera makeDefault position={[16, 12.5, 16]} zoom={ROOM_ZOOM} near={-40} far={80} />
+    <OrthographicCamera makeDefault position={[16, 12.5, 16]} zoom={ROOM_ZOOM} near={-40} far={90} />
   )
 })
 
 export function CameraRig() {
   const camera = useThree((state) => state.camera)
+  const gl = useThree((state) => state.gl)
   const focus = useStore((state) => state.cameraFocus)
+  const setDragging = useStore((state) => state.setDragging)
   const mobile = useIsMobile()
   const roomZoom = mobile ? MOBILE_ROOM_ZOOM : ROOM_ZOOM
   const deskZoom = mobile ? MOBILE_DESK_ZOOM : DESK_ZOOM
-  const look = useRef(ROOM_LOOK.clone())
-  const desired = useRef(new Vector3())
 
-  useLayoutEffect(() => {
-    camera.position.copy(ROOM_POS)
-    camera.lookAt(ROOM_LOOK)
-    if (camera instanceof ThreeOrtho) {
-      camera.zoom = roomZoom
-      camera.updateProjectionMatrix()
+  const azimuth = useRef(ROOM_AZIMUTH)
+  const polar = useRef(POLAR)
+  const zoom = useRef(roomZoom)
+  const target = useRef(ROOM_TARGET.clone())
+  const steer = useRef(false)
+  const focusRef = useRef(focus)
+  const drag = useRef(0)
+
+  useEffect(() => {
+    const el = gl.domElement
+    el.style.touchAction = 'none'
+    const pointers = new Map<number, { x: number; y: number }>()
+    let pinch = 0
+
+    const down = (event: PointerEvent) => {
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+      drag.current = 0
     }
-  }, [camera, roomZoom])
+
+    const move = (event: PointerEvent) => {
+      const previous = pointers.get(event.pointerId)
+      if (!previous) return
+      const dx = event.clientX - previous.x
+      const dy = event.clientY - previous.y
+      previous.x = event.clientX
+      previous.y = event.clientY
+
+      if (pointers.size >= 2) {
+        const points = [...pointers.values()]
+        const first = points[0]
+        const second = points[1]
+        if (!first || !second) return
+        const distance = Math.hypot(first.x - second.x, first.y - second.y)
+        if (pinch > 0) {
+          zoom.current = MathUtils.clamp(zoom.current * (distance / pinch), 16, 140)
+          steer.current = true
+        }
+        pinch = distance
+        return
+      }
+
+      if (dx === 0 && dy === 0) return
+      drag.current += Math.hypot(dx, dy)
+      if (drag.current > 6) {
+        setDragging(true)
+        document.body.style.cursor = 'grabbing'
+      }
+      azimuth.current -= dx * 0.005
+      polar.current = MathUtils.clamp(polar.current + dy * 0.003, 0.55, 1.25)
+      steer.current = true
+    }
+
+    const up = (event: PointerEvent) => {
+      pointers.delete(event.pointerId)
+      if (pointers.size < 2) pinch = 0
+      if (pointers.size === 0) {
+        drag.current = 0
+        if (document.body.style.cursor === 'grabbing') document.body.style.cursor = 'auto'
+        requestAnimationFrame(() => setDragging(false))
+      }
+    }
+
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault()
+      zoom.current = MathUtils.clamp(zoom.current * Math.exp(-event.deltaY * 0.0012), 16, 140)
+      steer.current = true
+    }
+
+    el.addEventListener('pointerdown', down)
+    el.addEventListener('pointermove', move)
+    el.addEventListener('pointerup', up)
+    el.addEventListener('pointercancel', up)
+    el.addEventListener('wheel', wheel, { passive: false })
+    return () => {
+      el.removeEventListener('pointerdown', down)
+      el.removeEventListener('pointermove', move)
+      el.removeEventListener('pointerup', up)
+      el.removeEventListener('pointercancel', up)
+      el.removeEventListener('wheel', wheel)
+    }
+  }, [gl, setDragging])
 
   useFrame((_, delta) => {
     if (!(camera instanceof ThreeOrtho)) return
+    if (focusRef.current !== focus) {
+      focusRef.current = focus
+      steer.current = false
+    }
+
     const desk = focus === 'desk'
-    desired.current.copy(desk ? DESK_POS : ROOM_POS)
-    const alpha = 1 - Math.exp(-delta * 2.8)
-    camera.position.lerp(desired.current, alpha)
-    look.current.lerp(desk ? DESK_LOOK : ROOM_LOOK, alpha)
-    camera.lookAt(look.current)
-    camera.zoom = MathUtils.damp(camera.zoom, desk ? deskZoom : roomZoom, 2.8, delta)
+    const goalAzimuth = desk ? DESK_AZIMUTH : ROOM_AZIMUTH
+    const goalZoom = desk ? deskZoom : roomZoom
+    const goalTarget = desk ? DESK_TARGET : ROOM_TARGET
+    if (!steer.current) {
+      const alpha = 1 - Math.exp(-delta * 2.8)
+      azimuth.current = MathUtils.damp(azimuth.current, goalAzimuth, 2.8, delta)
+      polar.current = MathUtils.damp(polar.current, POLAR, 2.8, delta)
+      zoom.current = MathUtils.damp(zoom.current, goalZoom, 2.8, delta)
+      target.current.lerp(goalTarget, alpha)
+    }
+
+    const sinPolar = Math.sin(polar.current)
+    camera.position.set(
+      target.current.x + RADIUS * sinPolar * Math.sin(azimuth.current),
+      target.current.y + RADIUS * Math.cos(polar.current),
+      target.current.z + RADIUS * sinPolar * Math.cos(azimuth.current),
+    )
+    camera.lookAt(target.current)
+    camera.zoom = zoom.current
     camera.updateProjectionMatrix()
   })
 

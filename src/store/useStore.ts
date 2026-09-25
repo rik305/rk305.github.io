@@ -7,6 +7,7 @@ type State = {
   modal: ModalId | null
   hovered: string | null
   playing: boolean
+  dragging: boolean
   cameraFocus: CameraFocus
   loaderActive: boolean
   loaderProgress: number
@@ -14,6 +15,7 @@ type State = {
   close: () => void
   setHovered: (id: string | null) => void
   setPlaying: (playing: boolean) => void
+  setDragging: (dragging: boolean) => void
   setLoader: (active: boolean, progress: number) => void
 }
 
@@ -21,6 +23,7 @@ export const useStore = create<State>((set) => ({
   modal: null,
   hovered: null,
   playing: false,
+  dragging: false,
   cameraFocus: 'room',
   loaderActive: false,
   loaderProgress: 0,
@@ -33,6 +36,7 @@ export const useStore = create<State>((set) => ({
   close: () => set({ modal: null, cameraFocus: 'room' }),
   setHovered: (hovered) => set({ hovered }),
   setPlaying: (playing) => set({ playing }),
+  setDragging: (dragging) => set({ dragging }),
   setLoader: (loaderActive, loaderProgress) =>
     set((state) =>
       state.loaderActive === loaderActive && state.loaderProgress === loaderProgress

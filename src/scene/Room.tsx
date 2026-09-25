@@ -71,19 +71,28 @@ export function Room({ shadows }: { shadows: boolean }) {
       <Interactable
         id="computer"
         label="Computer"
-        position={[-1.5, 0, 0.6]}
+        position={[0, 0, 0.6]}
+        rotation={[0, Math.PI / 4, 0]}
         tooltip={[0, 3.1, 0]}
         onSelect={() => open('computer')}
       >
         {(hot) => <Desk hot={hot} />}
       </Interactable>
-      <Interactable id="tv" label="Television" position={[4.3, 0, 1.4]} tooltip={[0, 2.6, 0]} onSelect={() => open('tv')}>
+      <Interactable
+        id="tv"
+        label="Television"
+        position={[3.6, 0, 2.2]}
+        rotation={[0, Math.PI / 4, 0]}
+        tooltip={[0, 2.6, 0]}
+        onSelect={() => open('tv')}
+      >
         {(hot) => <TV hot={hot} />}
       </Interactable>
       <Interactable
         id="turntable"
         label="Turntable"
-        position={[2.5, 0, -2.5]}
+        position={[2.2, 0, -1.2]}
+        rotation={[0, Math.PI / 4, 0]}
         tooltip={[0, 1.8, 0]}
         onSelect={() => open('turntable')}
       >
@@ -92,7 +101,8 @@ export function Room({ shadows }: { shadows: boolean }) {
       <Interactable
         id="bookshelf"
         label="Bookshelf"
-        position={[3.5, 0, -4.7]}
+        position={[2.4, 0, -3.4]}
+        rotation={[0, Math.PI / 4, 0]}
         tooltip={[0, 3.3, 0]}
         onSelect={() => open('bookshelf')}
       >
@@ -101,8 +111,9 @@ export function Room({ shadows }: { shadows: boolean }) {
       <Interactable
         id="contact"
         label="Contact"
-        position={[-4.4, 1.15, -2.6]}
-        tooltip={[0.8, 1.1, 0]}
+        position={[-3.2, 1.15, -1.6]}
+        rotation={[0, -Math.PI / 4, 0]}
+        tooltip={[0.9, 1.1, 0]}
         onSelect={() => open('contact')}
       >
         {(hot) => <Bulletin hot={hot} />}
