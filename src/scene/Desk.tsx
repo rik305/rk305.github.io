@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { CanvasTexture, SRGBColorSpace } from 'three'
 
-const LEFT_LINES = ['experience', 'projects', 'skills']
+const LEFT_LINES = ['rik kumar', 'waterloo', 'co-op']
 const RIGHT_LINES = ['resume.pdf', 'ready']
 
 function useScreenTexture(lines: string[], accent: string) {

@@ -8,7 +8,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "connect-src 'self' https://formspree.io https://api.web3forms.com",
-  "form-action 'self' https://formspree.io https://api.web3forms.com",
+  "form-action 'self' mailto: https://formspree.io https://api.web3forms.com",
   "frame-src 'none'",
   "frame-ancestors 'none'",
   "base-uri 'self'",

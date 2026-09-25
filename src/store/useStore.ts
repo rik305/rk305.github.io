@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type ModalId = 'computer' | 'tv' | 'turntable' | 'bookshelf' | 'contact'
+export type ModalId = 'computer' | 'tv' | 'turntable' | 'bookshelf' | 'contact' | 'chess'
 export type CameraFocus = 'room' | 'desk'
 
 type State = {

@@ -62,11 +62,11 @@ export function buildShell() {
 
   const leafColors = ['#c4522a', '#d4762c', '#e0a04a', '#8f3d28', '#b85a30']
   const spots: [number, number][] = [
-    [-1.2, -3.2],
-    [0.2, -3.6],
-    [1.1, -2.7],
-    [-2.1, -2.9],
-    [1.8, -3.9],
+    [4.6, 0.4],
+    [5.2, 1.1],
+    [4.2, 1.6],
+    [5.4, -0.4],
+    [3.8, 0.2],
   ]
   spots.forEach(([x, z], index) => {
     leaves.push({

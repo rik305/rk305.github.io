@@ -1,24 +1,29 @@
 import { useMemo } from 'react'
+import { useIsNight } from '../hooks/useIsNight'
 import { useStore } from '../store/useStore'
 import { Bookshelf } from './Bookshelf'
 import { Bulletin } from './Bulletin'
+import { ChessSet } from './ChessSet'
 import { Desk } from './Desk'
+import { Husky } from './Husky'
 import { Interactable } from './Interactable'
 import { Turntable } from './Turntable'
 import { TV } from './TV'
+import { WindowView } from './WindowView'
 import { buildShell, VoxelBatch } from './voxels'
 
 export function Room({ shadows }: { shadows: boolean }) {
   const shell = useMemo(() => buildShell(), [])
   const open = useStore((state) => state.open)
+  const night = useIsNight()
 
   return (
     <group>
       <ambientLight intensity={0.42} color="#ffd8b0" />
       <directionalLight
         position={[10, 16, 8]}
-        intensity={1.85}
-        color="#ffd2a1"
+        intensity={night ? 0.35 : 1.85}
+        color={night ? '#9bb7d4' : '#ffd2a1'}
         castShadow={shadows}
         shadow-mapSize-width={512}
         shadow-mapSize-height={512}
@@ -44,9 +49,16 @@ export function Room({ shadows }: { shadows: boolean }) {
       <VoxelBatch voxels={shell.leaves} size={[0.42, 0.08, 0.32]} />
       <VoxelBatch voxels={shell.plant} size={[0.42, 0.42, 0.42]} castShadow={shadows} />
 
+      <WindowView night={night} />
       <mesh position={[0.5, 2.5, -5.32]}>
         <boxGeometry args={[4.7, 2.7, 0.06]} />
-        <meshStandardMaterial color="#b7d7e2" transparent opacity={0.45} emissive="#ffd2a1" emissiveIntensity={0.55} />
+        <meshStandardMaterial
+          color={night ? '#8aa4c4' : '#b7d7e2'}
+          transparent
+          opacity={0.35}
+          emissive={night ? '#243656' : '#ffd2a1'}
+          emissiveIntensity={night ? 0.2 : 0.55}
+        />
       </mesh>
       <mesh position={[0.5, 2.5, -5.2]}>
         <boxGeometry args={[0.1, 2.85, 0.1]} />
@@ -57,7 +69,7 @@ export function Room({ shadows }: { shadows: boolean }) {
         <meshStandardMaterial color="#5c3a28" />
       </mesh>
 
-      <group position={[-4.7, 0, 2.4]}>
+      <group position={[-5.5, 0, -4.5]}>
         <mesh position={[0, 0.55, 0]} castShadow>
           <boxGeometry args={[0.12, 1.1, 0.12]} />
           <meshStandardMaterial color="#3a2a22" />
@@ -71,8 +83,8 @@ export function Room({ shadows }: { shadows: boolean }) {
       <Interactable
         id="computer"
         label="Computer"
-        position={[0, 0, 0.6]}
-        rotation={[0, Math.PI / 4, 0]}
+        position={[0.4, 0, -4.15]}
+        rotation={[0, 0, 0]}
         tooltip={[0, 3.1, 0]}
         onSelect={() => open('computer')}
       >
@@ -81,8 +93,8 @@ export function Room({ shadows }: { shadows: boolean }) {
       <Interactable
         id="tv"
         label="Television"
-        position={[3.6, 0, 2.2]}
-        rotation={[0, Math.PI / 4, 0]}
+        position={[-3.7, 0, -1.7]}
+        rotation={[0, 0.85, 0]}
         tooltip={[0, 2.6, 0]}
         onSelect={() => open('tv')}
       >
@@ -91,8 +103,8 @@ export function Room({ shadows }: { shadows: boolean }) {
       <Interactable
         id="turntable"
         label="Turntable"
-        position={[2.2, 0, -1.2]}
-        rotation={[0, Math.PI / 4, 0]}
+        position={[-0.85, 0, 2.55]}
+        rotation={[0, 1.15, 0]}
         tooltip={[0, 1.8, 0]}
         onSelect={() => open('turntable')}
       >
@@ -101,18 +113,29 @@ export function Room({ shadows }: { shadows: boolean }) {
       <Interactable
         id="bookshelf"
         label="Bookshelf"
-        position={[2.4, 0, -3.4]}
-        rotation={[0, Math.PI / 4, 0]}
+        position={[-5.9, 0, 0.2]}
+        rotation={[0, Math.PI / 2, 0]}
         tooltip={[0, 3.3, 0]}
         onSelect={() => open('bookshelf')}
       >
         {(hot) => <Bookshelf hot={hot} />}
       </Interactable>
       <Interactable
+        id="chess"
+        label="Chess"
+        position={[3.7, 0, -3.55]}
+        rotation={[0, 0, 0]}
+        tooltip={[0, 1.6, 0]}
+        onSelect={() => open('chess')}
+      >
+        {(hot) => <ChessSet hot={hot} />}
+      </Interactable>
+      <Husky night={night} />
+      <Interactable
         id="contact"
         label="Contact"
-        position={[-3.2, 1.15, -1.6]}
-        rotation={[0, -Math.PI / 4, 0]}
+        position={[-5.85, 1.75, 2.45]}
+        rotation={[0, 0, 0]}
         tooltip={[0.9, 1.1, 0]}
         onSelect={() => open('contact')}
       >

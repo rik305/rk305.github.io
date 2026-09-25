@@ -44,6 +44,7 @@ export function CameraRig() {
   const velPolar = useRef(0)
   const velZoom = useRef(0)
   const appliedZoom = useRef(-1)
+  const placed = useRef(false)
 
   useEffect(() => {
     gl.shadowMap.autoUpdate = false
@@ -180,7 +181,8 @@ export function CameraRig() {
       if (settled) focusing = false
     }
 
-    if (!moving && !focusing && Math.abs(camera.zoom - zoom.current) < 0.01) return
+    if (placed.current && !moving && !focusing && Math.abs(camera.zoom - zoom.current) < 0.01) return
+    placed.current = true
 
     const sinPolar = Math.sin(polar.current)
     camera.position.set(

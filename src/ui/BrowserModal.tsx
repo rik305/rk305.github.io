@@ -1,6 +1,7 @@
 import { Download } from 'lucide-react'
 import { useState } from 'react'
 import { site } from '../content/site'
+import { ExternalAnchor } from './ExternalAnchor'
 import { ModalShell } from './ModalShell'
 
 const tabs = ['Experience', 'Projects', 'Skills', 'Resume'] as const
@@ -38,22 +39,39 @@ export function BrowserModal() {
           className="min-h-52 bg-[#f7f1e4] p-4 text-[#3a2418]"
         >
           {tab === 'Experience' ? (
-            <ul className="space-y-4">
+            <ul className="space-y-5">
               {site.experience.map((item) => (
                 <li key={item.org}>
                   <h3 className="text-xl">{item.role}</h3>
-                  <p className="text-sm tracking-wide text-[#8c3a32]">{item.org}</p>
-                  <p className="mt-1">{item.summary}</p>
+                  <p className="text-sm tracking-wide text-[#8c3a32]">
+                    {item.org} · {item.where}
+                  </p>
+                  <p className="text-sm text-[#6b442c]">{item.when}</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {item.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
                 </li>
               ))}
             </ul>
           ) : null}
           {tab === 'Projects' ? (
-            <ul className="space-y-4">
+            <ul className="space-y-5">
               {site.projects.map((project) => (
                 <li key={project.name}>
                   <h3 className="text-xl">{project.name}</h3>
-                  <p className="mt-1">{project.summary}</p>
+                  <p className="text-sm text-[#6b442c]">
+                    {project.when} · {project.stack}
+                  </p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {project.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
+                  <ExternalAnchor href={project.href} className="mt-2 inline-block underline">
+                    View code
+                  </ExternalAnchor>
                 </li>
               ))}
             </ul>
@@ -70,9 +88,26 @@ export function BrowserModal() {
           {tab === 'Resume' ? (
             <div className="border border-[#d8c09a] bg-[#fffaf2] p-4">
               <h3 className="text-2xl">{site.name}</h3>
-              <p className="mt-1 text-[#6b442c]">{site.role}</p>
-              <p className="mt-3 text-sm">
-                Place your PDF at <span className="font-mono">public/resume.pdf</span>.
+              <p className="mt-1 text-[#6b442c]">{site.education.program}</p>
+              <p className="text-sm">
+                {site.education.school} · {site.education.when} · GPA {site.education.gpa}
+              </p>
+              <p className="mt-3 flex flex-wrap gap-3 text-sm">
+                <ExternalAnchor href={`mailto:${site.email}`} className="underline">
+                  {site.email}
+                </ExternalAnchor>
+                <ExternalAnchor href={site.phoneHref} className="underline">
+                  {site.phone}
+                </ExternalAnchor>
+                <ExternalAnchor href={site.links.linkedin} className="underline">
+                  LinkedIn
+                </ExternalAnchor>
+                <ExternalAnchor href={site.links.github} className="underline">
+                  GitHub
+                </ExternalAnchor>
+                <ExternalAnchor href={site.links.leetcode} className="underline">
+                  LeetCode
+                </ExternalAnchor>
               </p>
               <a
                 href={site.resumeHref}

@@ -13,6 +13,6 @@
     <rect x="360" y="150" width="70" height="50" fill="#3d291c"/>
     <rect x="368" y="158" width="54" height="30" fill="#1f6b45"/>
   </g>
-  <text x="80" y="520" fill="#f6efe4" font-family="Georgia, serif" font-size="54">Your Name</text>
+  <text x="80" y="520" fill="#f6efe4" font-family="Georgia, serif" font-size="54">Rik Kumar</text>
   <text x="80" y="570" fill="#e7b56a" font-family="Georgia, serif" font-size="28">Voxel autumn portfolio</text>
 </svg>

@@ -7,6 +7,7 @@ const actions: { id: ModalId; label: string }[] = [
   { id: 'turntable', label: 'Open turntable' },
   { id: 'bookshelf', label: 'Open bookshelf' },
   { id: 'contact', label: 'Open contact board' },
+  { id: 'chess', label: 'Open chess set' },
 ]
 
 const focusClass =
