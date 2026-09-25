@@ -27,7 +27,9 @@ export default function CanvasApp() {
       className="h-full w-full"
       aria-label="Isometric autumn room. Use the room controls to open the computer, television, turntable, bookshelf, and contact board."
       dpr={mobile ? [1, 1.5] : [1, 2]}
-      gl={{ antialias: !mobile, powerPreference: 'high-performance', alpha: false }}
+      performance={{ min: 0.5, debounce: 250 }}
+      resize={{ debounce: 200 }}
+      gl={{ antialias: !mobile, powerPreference: 'high-performance', alpha: false, stencil: false, depth: true }}
       shadows={!mobile}
       onPointerMissed={() => useStore.getState().setHovered(null)}
     >
@@ -37,8 +39,8 @@ export default function CanvasApp() {
       <ProgressSync />
       <Room shadows={!mobile} />
       {mobile ? null : (
-        <EffectComposer multisampling={0}>
-          <Bloom luminanceThreshold={0.72} intensity={0.35} mipmapBlur />
+        <EffectComposer multisampling={0} enableNormalPass={false}>
+          <Bloom luminanceThreshold={0.85} intensity={0.28} mipmapBlur={false} />
         </EffectComposer>
       )}
     </Canvas>

@@ -144,6 +144,7 @@ export function VoxelBatch({
     })
     mesh.instanceMatrix.needsUpdate = true
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+    mesh.computeBoundingSphere()
   }, [voxels])
 
   if (voxels.length === 0) return null

@@ -20,8 +20,8 @@ export function Room({ shadows }: { shadows: boolean }) {
         intensity={1.85}
         color="#ffd2a1"
         castShadow={shadows}
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
         shadow-camera-left={-14}
         shadow-camera-right={14}
         shadow-camera-top={14}
@@ -39,7 +39,7 @@ export function Room({ shadows }: { shadows: boolean }) {
       </mesh>
 
       <VoxelBatch voxels={shell.floor} receiveShadow={shadows} />
-      <VoxelBatch voxels={shell.walls} castShadow={shadows} receiveShadow={shadows} />
+      <VoxelBatch voxels={shell.walls} receiveShadow={shadows} />
       <VoxelBatch voxels={shell.rug} size={[0.96, 0.06, 0.96]} receiveShadow={shadows} />
       <VoxelBatch voxels={shell.leaves} size={[0.42, 0.08, 0.32]} />
       <VoxelBatch voxels={shell.plant} size={[0.42, 0.42, 0.42]} castShadow={shadows} />

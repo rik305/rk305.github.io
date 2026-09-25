@@ -38,6 +38,17 @@ export function CameraRig() {
   const steer = useRef(false)
   const focusRef = useRef(focus)
   const drag = useRef(0)
+  const held = useRef(false)
+  const dragging = useRef(false)
+  const velAzimuth = useRef(0)
+  const velPolar = useRef(0)
+  const velZoom = useRef(0)
+  const appliedZoom = useRef(-1)
+
+  useEffect(() => {
+    gl.shadowMap.autoUpdate = false
+    gl.shadowMap.needsUpdate = true
+  }, [gl])
 
   useEffect(() => {
     const el = gl.domElement
@@ -48,6 +59,9 @@ export function CameraRig() {
     const down = (event: PointerEvent) => {
       pointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
       drag.current = 0
+      held.current = true
+      velAzimuth.current = 0
+      velPolar.current = 0
     }
 
     const move = (event: PointerEvent) => {
@@ -65,7 +79,7 @@ export function CameraRig() {
         if (!first || !second) return
         const distance = Math.hypot(first.x - second.x, first.y - second.y)
         if (pinch > 0) {
-          zoom.current = MathUtils.clamp(zoom.current * (distance / pinch), 16, 140)
+          velZoom.current += Math.log(distance / pinch)
           steer.current = true
         }
         pinch = distance
@@ -74,12 +88,15 @@ export function CameraRig() {
 
       if (dx === 0 && dy === 0) return
       drag.current += Math.hypot(dx, dy)
-      if (drag.current > 6) {
+      if (drag.current > 6 && !dragging.current) {
+        dragging.current = true
         setDragging(true)
         document.body.style.cursor = 'grabbing'
       }
-      azimuth.current -= dx * 0.005
-      polar.current = MathUtils.clamp(polar.current + dy * 0.003, 0.55, 1.25)
+      velAzimuth.current = -dx * 0.005
+      velPolar.current = dy * 0.003
+      azimuth.current += velAzimuth.current
+      polar.current = MathUtils.clamp(polar.current + velPolar.current, 0.55, 1.25)
       steer.current = true
     }
 
@@ -87,15 +104,19 @@ export function CameraRig() {
       pointers.delete(event.pointerId)
       if (pointers.size < 2) pinch = 0
       if (pointers.size === 0) {
+        held.current = false
         drag.current = 0
         if (document.body.style.cursor === 'grabbing') document.body.style.cursor = 'auto'
-        requestAnimationFrame(() => setDragging(false))
+        if (dragging.current) {
+          dragging.current = false
+          requestAnimationFrame(() => setDragging(false))
+        }
       }
     }
 
     const wheel = (event: WheelEvent) => {
       event.preventDefault()
-      zoom.current = MathUtils.clamp(zoom.current * Math.exp(-event.deltaY * 0.0012), 16, 140)
+      velZoom.current += -event.deltaY * 0.0011
       steer.current = true
     }
 
@@ -113,24 +134,53 @@ export function CameraRig() {
     }
   }, [gl, setDragging])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!(camera instanceof ThreeOrtho)) return
     if (focusRef.current !== focus) {
       focusRef.current = focus
       steer.current = false
+      velAzimuth.current = 0
+      velPolar.current = 0
+      velZoom.current = 0
+    }
+
+    const moving = held.current || Math.abs(velAzimuth.current) > 0.00005 || Math.abs(velPolar.current) > 0.00005 || Math.abs(velZoom.current) > 0.00005
+    if (moving) state.performance.regress()
+
+    if (!held.current && steer.current) {
+      const decay = Math.exp(-delta * 7)
+      azimuth.current += velAzimuth.current
+      polar.current = MathUtils.clamp(polar.current + velPolar.current, 0.55, 1.25)
+      velAzimuth.current *= decay
+      velPolar.current *= decay
+      if (Math.abs(velAzimuth.current) < 0.00005) velAzimuth.current = 0
+      if (Math.abs(velPolar.current) < 0.00005) velPolar.current = 0
+    }
+
+    if (Math.abs(velZoom.current) > 0.00005) {
+      zoom.current = MathUtils.clamp(zoom.current * Math.exp(velZoom.current), 16, 140)
+      velZoom.current *= Math.exp(-delta * 10)
+      if (Math.abs(velZoom.current) < 0.00005) velZoom.current = 0
     }
 
     const desk = focus === 'desk'
-    const goalAzimuth = desk ? DESK_AZIMUTH : ROOM_AZIMUTH
     const goalZoom = desk ? deskZoom : roomZoom
     const goalTarget = desk ? DESK_TARGET : ROOM_TARGET
+    let focusing = false
     if (!steer.current) {
-      const alpha = 1 - Math.exp(-delta * 2.8)
-      azimuth.current = MathUtils.damp(azimuth.current, goalAzimuth, 2.8, delta)
+      focusing = true
+      azimuth.current = MathUtils.damp(azimuth.current, desk ? DESK_AZIMUTH : ROOM_AZIMUTH, 2.8, delta)
       polar.current = MathUtils.damp(polar.current, POLAR, 2.8, delta)
       zoom.current = MathUtils.damp(zoom.current, goalZoom, 2.8, delta)
-      target.current.lerp(goalTarget, alpha)
+      target.current.lerp(goalTarget, 1 - Math.exp(-delta * 2.8))
+      const settled =
+        Math.abs(azimuth.current - (desk ? DESK_AZIMUTH : ROOM_AZIMUTH)) < 0.001 &&
+        Math.abs(zoom.current - goalZoom) < 0.05 &&
+        target.current.distanceToSquared(goalTarget) < 0.0004
+      if (settled) focusing = false
     }
+
+    if (!moving && !focusing && Math.abs(camera.zoom - zoom.current) < 0.01) return
 
     const sinPolar = Math.sin(polar.current)
     camera.position.set(
@@ -139,8 +189,11 @@ export function CameraRig() {
       target.current.z + RADIUS * sinPolar * Math.cos(azimuth.current),
     )
     camera.lookAt(target.current)
-    camera.zoom = zoom.current
-    camera.updateProjectionMatrix()
+    if (Math.abs(appliedZoom.current - zoom.current) > 0.01) {
+      appliedZoom.current = zoom.current
+      camera.zoom = zoom.current
+      camera.updateProjectionMatrix()
+    }
   })
 
   return null
